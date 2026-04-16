@@ -69,6 +69,19 @@ The extension only stores local settings such as mask position, size, and opacit
 - site access: inject the mask into video pages
 - `scripting` / `webNavigation`: keep the content script working on dynamic video pages and frames
 
+## Why broad site access is needed
+
+Subtitle Masker needs to run directly on video pages in order to place the mask over the visible subtitle area.
+
+Different sites use very different player structures:
+- some use normal inline video elements
+- some use custom fullscreen containers
+- some render video inside frames or dynamic page transitions
+
+Because of that, the extension requests broad site access so it can inject the local mask UI where needed.
+
+It does **not** upload browsing history, video data, subtitle data, or page content to any remote server.
+
 ## Release notes
 
 ### v0.1.0
