@@ -82,6 +82,20 @@ Because of that, the extension requests broad site access so it can inject the l
 
 It does **not** upload browsing history, video data, subtitle data, or page content to any remote server.
 
+## Security philosophy
+
+Subtitle Masker is intended to stay a local, single-purpose tool.
+
+Its goal is simple: place a mask over visible subtitle areas on video pages.
+
+### Non-goals
+
+- no account system
+- no analytics or tracking
+- no cloud sync
+- no remote code or remote rule execution
+- no collection or upload of page content, subtitles, or browsing history
+
 ## Release notes
 
 ### v0.1.0
