@@ -1,8 +1,8 @@
 # Subtitle Masker
 
-A lightweight browser extension that covers hardcoded subtitles with a draggable, resizable mask.
+A lightweight browser extension that hides hardcoded subtitles with a draggable, resizable mask.
 
-Useful when you want to watch without reading subtitles automatically.
+Built for listening-focused video watching: when subtitles are always on screen, it is too easy to read instead of actually listening. Subtitle Masker helps you rely more on audio, scene context, and real comprehension.
 
 ## Features
 
@@ -71,7 +71,7 @@ The extension only stores local settings such as mask position, size, and opacit
 
 ## Release notes
 
-### 1.0.0
+### v0.1.0
 
 - Initial public release
 - Draggable and resizable subtitle mask
