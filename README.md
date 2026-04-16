@@ -1,8 +1,23 @@
 # Subtitle Masker
 
+简体中文说明: [README.zh-CN.md](./README.zh-CN.md)
+
 A lightweight browser extension that hides hardcoded subtitles with a draggable, resizable mask.
 
 Built for listening-focused video watching: when subtitles are always on screen, it is too easy to read instead of actually listening. Subtitle Masker helps you rely more on audio, scene context, and real comprehension.
+
+## Quick start
+
+1. Download or clone this repository.
+2. Open your Chromium-based browser's extensions page.
+3. Turn on **Developer mode** and choose **Load unpacked**.
+4. Select this project folder.
+5. Open a video page, click the extension, and enable the mask.
+
+Normal limitations:
+- some sites may behave differently in fullscreen
+- some players may need manual repositioning of the mask
+- this is currently a GitHub-distributed developer-mode extension, not a Chrome Web Store build
 
 ## Features
 
