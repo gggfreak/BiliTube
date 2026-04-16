@@ -5,7 +5,7 @@
   "description": "Cover hardcoded subtitles with a draggable, resizable mask on video sites.",
   "permissions": ["storage", "scripting", "webNavigation"],
   "host_permissions": ["<all_urls>"],
-  "homepage_url": "https://github.com/qiangkeke/subtitle-masker",
+  "homepage_url": "https://github.com/kekeyumuku/subtitle-masker",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

@@ -30,4 +30,6 @@ This data stays in your browser's extension storage.
 
 ## Contact
 
-If you publish this extension, replace this section with your preferred contact or repository link.
+Project repository:
+
+- https://github.com/kekeyumuku/subtitle-masker
