@@ -2,6 +2,7 @@ const toggleEl = document.getElementById('toggle');
 const opacityEl = document.getElementById('opacity');
 const opacityVal = document.getElementById('opacityVal');
 const statusEl = document.getElementById('status');
+const ytShortcutsEl = document.getElementById('ytShortcuts');
 
 function setStatus(text) {
   statusEl.textContent = text || '';
@@ -66,13 +67,18 @@ async function init() {
         : { visible: false, opacity: 0.9 }
     ) || state;
   } else {
-    // Freshly injected — auto-showed
-    state = { visible: true, opacity: 0.9 };
+    // Not yet injected — default hidden
+    state = { visible: false, opacity: 0.9 };
   }
 
   toggleEl.checked = state.visible;
   opacityEl.value = Math.round(state.opacity * 100);
   opacityVal.textContent = `${Math.round(state.opacity * 100)}%`;
+  
+  chrome.storage.local.get('ytShortcuts', d => {
+    ytShortcutsEl.checked = d.ytShortcuts !== false;
+  });
+  
   setStatus('Drag the mask on the page to position it.');
 }
 
@@ -83,21 +89,13 @@ toggleEl.addEventListener('change', async () => {
   const loaded = await ensureInjected(tab.id);
   if (!loaded) {
     await inject(tab.id);
-    // content.js auto-shows on first inject
-    if (!toggleEl.checked) {
-      await execInTab(tab.id, () => window.__subtitleMasker?.hide());
-      setStatus('Mask hidden.');
-    } else {
-      setStatus('Mask enabled.');
-    }
-    return;
   }
 
   if (toggleEl.checked) {
-    await execInTab(tab.id, () => window.__subtitleMasker?.show());
+    await sendMsg(tab.id, { action: 'show' });
     setStatus('Mask enabled.');
   } else {
-    await execInTab(tab.id, () => window.__subtitleMasker?.hide());
+    await sendMsg(tab.id, { action: 'hide' });
     setStatus('Mask hidden.');
   }
 });
@@ -110,8 +108,14 @@ opacityEl.addEventListener('change', async () => {
   const tab = await getTab();
   if (!tab) return;
   const val = parseInt(opacityEl.value) / 100;
-  await execInTab(tab.id, (v) => window.__subtitleMasker?.setOpacity(v), [val]);
+  await sendMsg(tab.id, { action: 'setOpacity', value: val });
   setStatus(`Opacity set to ${opacityEl.value}%.`);
+});
+
+ytShortcutsEl.addEventListener('change', () => {
+  const isEnabled = ytShortcutsEl.checked;
+  chrome.storage.local.set({ ytShortcuts: isEnabled });
+  setStatus(`YouTube shortcuts ${isEnabled ? 'enabled' : 'disabled'}.`);
 });
 
 init();

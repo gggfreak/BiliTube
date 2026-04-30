@@ -31,6 +31,7 @@
     const candidates = [
       document.querySelector('video#video'),
       document.querySelector('.video-content video'),
+      document.querySelector('bwp-video'),
       document.querySelector('video'),
     ];
     return candidates.find(el => {
@@ -42,6 +43,10 @@
 
   function isNnyyHost() {
     return /(^|\.)nnyy\.in$/i.test(location.hostname);
+  }
+
+  function isBilibiliHost() {
+    return /(^|\.)bilibili\.com$/i.test(location.hostname);
   }
 
   function getFullscreenContainer() {
@@ -396,9 +401,308 @@
       if (overlay.parentNode !== mountRoot) {
         mountRoot.appendChild(overlay);
       }
-      Object.assign(overlay.style, getDefaultRect());
-      saveRect();
+
+      const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+      if (isFullscreen) {
+        // Entering fullscreen: reset to a default position for the fullscreen view.
+        // We don't save this position to avoid overwriting the user's normal-view setting.
+        Object.assign(overlay.style, getDefaultRect());
+      } else {
+        // Exiting fullscreen: restore the last saved position.
+        loadRect().then(saved => {
+          let rect = saved;
+          // Validate saved rect to ensure it's (mostly) within the current viewport
+          if (rect) {
+            const t = parseInt(rect.top);
+            const l = parseInt(rect.left);
+            if (t > window.innerHeight || l > window.innerWidth || t < -200 || l < -200) {
+              rect = null;
+            }
+          }
+          // If we have a valid saved rect, use it. Otherwise, calculate a new default.
+          Object.assign(overlay.style, rect || getDefaultRect());
+        });
+      }
     }, 150);
+  }
+
+  function setupBilibiliSpeedup() {
+    if (!isBilibiliHost() || window.__bilibiliSpeedupInitialized) return;
+    window.__bilibiliSpeedupInitialized = true;
+
+    let ytShortcutsEnabled = true;
+    chrome.storage.local.get('ytShortcuts', d => {
+      if (d.ytShortcuts !== undefined) ytShortcutsEnabled = d.ytShortcuts;
+    });
+    chrome.storage.onChanged.addListener(changes => {
+      if (changes.ytShortcuts) ytShortcutsEnabled = changes.ytShortcuts.newValue;
+    });
+
+    // --- 创建全局复用的提示 UI ---
+    const indicator = document.createElement('div');
+    Object.assign(indicator.style, {
+      position: 'absolute', // 修正：从 'fixed' 改回 'absolute'
+      top: '40px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: 'rgba(0, 0, 0, 0.65)',
+      color: '#fff',
+      padding: '8px 18px',
+      borderRadius: '999px',
+      fontSize: '15px',
+      fontWeight: 'bold',
+      zIndex: '2147483647',
+      pointerEvents: 'none',
+      opacity: '0',
+      transition: 'opacity 0.2s ease',
+      backdropFilter: 'blur(4px)',
+      webkitBackdropFilter: 'blur(4px)'
+    });
+
+    let indicatorTimer = null;
+    function showIndicator(text, persist = false) {
+      indicator.textContent = text;
+      indicator.style.opacity = '1';
+      
+      let mount = document.body; // 默认挂载到 body
+      const video = getVideoEl();
+
+      // 优先挂载到全屏元素
+      const fsElement = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fsElement) {
+          mount = fsElement;
+      } else if (video) {
+          // 尝试找到最近的 Bilibili 播放器容器（通常是已定位的）
+          let currentElement = video.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap');
+          if (!currentElement) { // 如果没有找到特定播放器容器，从视频父元素开始查找
+              currentElement = video.parentElement;
+          }
+
+          // 向上遍历 DOM 树，找到第一个已定位的父元素作为挂载点
+          while (currentElement && currentElement !== document.body && currentElement !== document.documentElement) {
+              const position = getComputedStyle(currentElement).position;
+              if (position === 'relative' || position === 'absolute' || position === 'fixed') {
+                  mount = currentElement;
+                  break;
+              }
+              currentElement = currentElement.parentElement;
+          }
+      }
+
+      if (indicator.parentNode !== mount) {
+        mount.appendChild(indicator);
+      }
+
+      if (indicatorTimer) clearTimeout(indicatorTimer);
+      if (!persist) {
+        indicatorTimer = setTimeout(() => { indicator.style.opacity = '0'; }, 800);
+      }
+    }
+
+    function hideIndicator() {
+      indicator.style.opacity = '0';
+      if (indicatorTimer) clearTimeout(indicatorTimer);
+    }
+
+    let originalRate = 1;
+    let mouseTimer = null;
+    let spaceTimer = null;
+    let isMouseSpeedingUp = false;
+    let isSpaceSpeedingUp = false;
+
+    function applySpeedup(video) {
+      if (!video) return;
+      // 如果当前没有正在加速的来源，则保存原始倍速
+      if (!isMouseSpeedingUp && !isSpaceSpeedingUp) {
+        originalRate = video.playbackRate;
+      }
+      video.playbackRate = 2.0;
+      showIndicator('2x ⏩', true);
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
+    }
+
+    function removeSpeedup(video) {
+      if (!video) return;
+      // 只有当鼠标和空格都没有在要求加速时，才恢复原速
+      if (!isMouseSpeedingUp && !isSpaceSpeedingUp) {
+        video.playbackRate = originalRate;
+        hideIndicator();
+      }
+    }
+
+    window.addEventListener('pointerdown', (e) => {
+      // 只响应鼠标左键
+      if (e.button !== 0) return;
+      const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap');
+      if (!container) return;
+      // 忽略对底部控制条等区域的点击
+      if (e.target.closest('.bpx-player-control-wrap, .bilibili-player-video-control, .bpx-player-sending-area')) return;
+
+      const video = getVideoEl();
+      if (!video) return;
+
+      // 设定 250ms 延迟，区分普通单击(暂停/播放)与长按
+      mouseTimer = setTimeout(() => {
+        mouseTimer = null;
+        applySpeedup(video);
+        isMouseSpeedingUp = true;
+      }, 250);
+    }, true);
+
+    const stopMouseSpeedup = (e) => {
+      if (mouseTimer) {
+        clearTimeout(mouseTimer);
+        mouseTimer = null;
+      }
+      if (isMouseSpeedingUp) {
+        isMouseSpeedingUp = false;
+        const video = getVideoEl();
+        removeSpeedup(video);
+
+        // 优雅拦截：放行 pointerup 事件让 B站 正常重置内部状态（防止卡在 2 倍速），
+        // 但临时劫持底层的 pause 方法 200ms，以防 B站 把它当成单击而暂停视频。
+        if (video) {
+          if (!video.__pauseHijacked) {
+            const origPause = video.pause;
+            video.pause = function() {
+              if (video.__blockPauseUntil && Date.now() < video.__blockPauseUntil) return Promise.resolve();
+              return origPause.apply(this, arguments);
+            };
+            video.__pauseHijacked = true;
+          }
+          video.__blockPauseUntil = Date.now() + 200;
+        }
+
+        // 保留旧的 click 拦截作为后备，以应对不同的播放器行为。
+        const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap') || document.body;
+        const preventClick = (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          container.removeEventListener('click', preventClick, true);
+        };
+        container.addEventListener('click', preventClick, true);
+        
+        // 100ms 后兜底清理（以防没有触发 click）
+        setTimeout(() => container.removeEventListener('click', preventClick, true), 100);
+      }
+    };
+
+    window.addEventListener('pointerup', stopMouseSpeedup, true);
+    window.addEventListener('pointercancel', stopMouseSpeedup, true);
+
+    // --- 键盘长按空格加速 ---
+    // 如果焦点在输入框（如搜索框、评论区），不拦截空格
+    const isInput = (el) => el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+
+    window.addEventListener('keydown', (e) => {
+      if (isInput(e.target)) return;
+      const video = getVideoEl();
+      if (!video) return;
+
+      // 1. 处理长按空格加速 (需要 repeat 判断)
+      if (e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!e.repeat) {
+          spaceTimer = setTimeout(() => {
+            spaceTimer = null;
+            applySpeedup(video);
+            isSpaceSpeedingUp = true;
+          }, 250);
+        }
+        return;
+      }
+
+      // 忽略其他带 Ctrl/Alt/Meta 的组合键，防止与系统自带快捷键冲突
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      let handled = false;
+
+      // 2. YouTube 风格常规快捷键
+      if (ytShortcutsEnabled) {
+        switch (e.key) {
+          case 'k': case 'K':
+            handled = true;
+            video.paused ? video.play().catch(()=>{}) : video.pause();
+            break;
+          case 'j': case 'J':
+            handled = true;
+            video.currentTime = Math.max(0, video.currentTime - 10);
+            showIndicator('⏪ -10s');
+            break;
+          case 'l': case 'L':
+            handled = true;
+            video.currentTime = Math.min(video.duration, video.currentTime + 10);
+            showIndicator('+10s ⏩');
+            break;
+          case 'P': // Shift + p
+            handled = true;
+            document.querySelector('.bpx-player-ctrl-prev')?.click();
+            break;
+          case 'N': // Shift + n
+            handled = true;
+            document.querySelector('.bpx-player-ctrl-next, .bilibili-player-video-btn-next')?.click();
+            break;
+          case 'f': case 'F':
+            handled = true;
+            document.querySelector('.bpx-player-ctrl-full')?.click() || document.querySelector('.bilibili-player-video-btn-fullscreen')?.click();
+            break;
+          case 't': case 'T':
+            handled = true;
+            document.querySelector('.bpx-player-ctrl-web')?.click() || document.querySelector('.bilibili-player-video-web-fullscreen')?.click();
+            break;
+          case 'i': case 'I':
+            handled = true;
+            document.querySelector('.bpx-player-ctrl-pip')?.click();
+            break;
+          case 'm': case 'M':
+            handled = true;
+            document.querySelector('.bpx-player-ctrl-volume')?.click() || (video.muted = !video.muted);
+            break;
+        }
+
+        // 处理数字键跳转 0% ~ 90%
+        if (/^[0-9]$/.test(e.key)) {
+          handled = true;
+          if (video.duration) {
+            video.currentTime = video.duration * (parseInt(e.key) / 10);
+            showIndicator(`跳转至 ${e.key}0%`);
+          }
+        }
+      }
+
+      if (handled) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    window.addEventListener('keyup', (e) => {
+      if (isInput(e.target)) return;
+      const video = getVideoEl();
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (spaceTimer) {
+          // 如果在 250ms 内松开，视为短按，执行普通的播放/暂停切换
+          clearTimeout(spaceTimer);
+          spaceTimer = null;
+          if (video) {
+            video.paused ? video.play().catch(() => {}) : video.pause();
+          }
+        }
+
+        if (isSpaceSpeedingUp) {
+          isSpaceSpeedingUp = false;
+          removeSpeedup(video);
+        }
+      }
+    }, true);
   }
 
   function hijackNnyyFullscreen() {
@@ -564,26 +868,32 @@
     const existing = getVideoEl();
     if (existing) {
       hijackNnyyFullscreen();
-      return;
+      setupBilibiliSpeedup();
     }
+    
+    let timeout;
     const observer = new MutationObserver(() => {
-      const el = getVideoEl();
-      if (!el) return;
-      observer.disconnect();
-      hijackNnyyFullscreen();
-      if (overlay && visible) {
-        // Video just became available — recalculate position
-        Object.assign(overlay.style, getDefaultRect());
-        saveRect();
-      }
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        const el = getVideoEl();
+        if (!el) return;
+        hijackNnyyFullscreen();
+        setupBilibiliSpeedup();
+        if (overlay && visible && !el.__subtitleMaskerPositioned) {
+          el.__subtitleMaskerPositioned = true;
+          // Video just became available — recalculate position
+          Object.assign(overlay.style, getDefaultRect());
+          saveRect();
+        }
+      }, 500);
     });
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['width', 'height', 'src'] });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
-  // Auto-show on first injection (top frame only)
+  // Initialize on first injection (top frame only)
   if (!isIframe) {
-    show();
     watchForVideo();
     hijackNnyyFullscreen();
+    setupBilibiliSpeedup();
   }
 })();

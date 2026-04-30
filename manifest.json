@@ -1,34 +1,42 @@
 {
   "manifest_version": 3,
-  "name": "Subtitle Masker",
-  "version": "1.0.0",
-  "description": "Cover hardcoded subtitles with a draggable, resizable mask on video sites.",
-  "permissions": ["storage", "scripting", "webNavigation"],
-  "host_permissions": ["<all_urls>"],
-  "homepage_url": "https://github.com/kekeyumuku/subtitle-masker",
+  "name": "BiliTube",
+  "version": "1.0.14",
+  "description": "A browser extension that enhances Bilibili playback (e.g., long-press 2x speed) and hides hardcoded subtitles with a draggable mask.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_icon": "icons/icon48.png"
   },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "*://*.bilibili.com/*"
+  ],
+  "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["*://*.bilibili.com/*"],
       "js": ["content.js"],
-      "all_frames": true,
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
   "commands": {
     "toggle-mask": {
-      "suggested_key": { "default": "Alt+S" },
-      "description": "Toggle subtitle mask"
+      "suggested_key": {
+        "default": "Alt+M",
+        "mac": "MacCtrl+M"
+      },
+      "description": "Toggle subtitle mask visibility"
     }
   }
 }

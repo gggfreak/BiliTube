@@ -1,3 +1,9 @@
+<!--
+ * @Date: 2026-04-16 11:10:51
+ * @LastEditors: gggfrank
+ * @LastEditTime: 2026-04-30 13:26:08
+ * @FilePath: /subtitle-masker/PRIVACY.md
+-->
 # Privacy Policy
 
 Subtitle Masker does not collect, transmit, or sell personal data.
@@ -28,8 +34,3 @@ This data stays in your browser's extension storage.
 - No analytics
 - No remote server communication
 
-## Contact
-
-Project repository:
-
-- https://github.com/kekeyumuku/subtitle-masker

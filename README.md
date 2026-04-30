@@ -1,23 +1,22 @@
-# Subtitle Masker
+# BiliTube
 
 简体中文说明: [README.zh-CN.md](./README.zh-CN.md)
 
-A lightweight browser extension that hides hardcoded subtitles with a draggable, resizable mask.
+A lightweight browser extension that enhances your Bilibili playback experience and hides hardcoded subtitles with a draggable mask.
 
-Built for listening-focused video watching: when subtitles are always on screen, it is too easy to read instead of actually listening. Subtitle Masker helps you rely more on audio, scene context, and real comprehension.
+BiliTube offers two main core features:
+
+1. **Bilibili Playback Enhancements**: Brings YouTube-like smooth controls to Bilibili (e.g., long-press mouse or Spacebar for 2x speed).
+2. **Subtitle Masking**: Built for listening-focused video watching. When subtitles are always on screen, it is too easy to read instead of actually listening. BiliTube places a resizable mask over them so you rely more on audio and context.
 
 ## Quick start
 
-1. Download or clone this repository.
-2. Open your Chromium-based browser's extensions page.
-3. Turn on **Developer mode** and choose **Load unpacked**.
-4. Select this project folder.
-5. Open a video page, click the extension, and enable the mask.
+1. Install BiliTube from the Chrome Web Store (link coming soon).
+2. Open a video page, click the extension icon, and enable the features.
 
 Normal limitations:
 - some sites may behave differently in fullscreen
 - some players may need manual repositioning of the mask
-- this is currently a GitHub-distributed developer-mode extension, not a Chrome Web Store build
 
 ## Features
 
@@ -25,7 +24,17 @@ Normal limitations:
 - Resizable from the corners
 - Adjustable opacity
 - Per-site saved position and size
-- Keyboard shortcut: `Alt+S`
+- **Bilibili Exclusive Enhancements**:
+  - **Long-press speedup**: Hold left mouse button or Spacebar for 2x speed playback.
+  - **Smart distinction**: Short clicks still trigger Bilibili's native play/pause.
+  - **Visual indicator**: Displays a sleek "2x ⏩" pill-shaped indicator while speeding up.
+  - **YouTube-style shortcuts**:
+    - `k`: Play/pause
+    - `j` / `l`: Rewind / Fast-forward 10 seconds
+    - `0`..`9`: Jump to 0%..90% of the video length
+    - `Shift` + `p` / `n`: Previous / Next video
+    - `f` / `t` / `i`: Toggle Fullscreen / Web Fullscreen / Picture-in-Picture
+    - `m`: Toggle Mute
 - Works on many video sites without site-specific setup
 - Site-specific fullscreen handling when needed
 
@@ -62,7 +71,7 @@ Because of browser limitations, some sites may need the extension's custom fulls
 
 ## Privacy
 
-Subtitle Masker runs locally in your browser.
+BiliTube runs locally in your browser.
 
 - No account
 - No analytics
@@ -71,35 +80,32 @@ Subtitle Masker runs locally in your browser.
 
 The extension only stores local settings such as mask position, size, and opacity.
 
-## Installation (developer mode)
+## Installation
 
-1. Open your Chromium-based browser extension page.
-2. Turn on **Developer mode**.
-3. Click **Load unpacked**.
-4. Select this folder.
+**Recommended**: Install directly from the Chrome Web Store.
+
+*(For developers: You can also clone this repository, turn on **Developer mode** in your browser's extensions page, and choose **Load unpacked** to load this folder.)*
 
 ## Permissions
 
 - `storage`: save opacity and mask position
-- site access: inject the mask into video pages
-- `scripting` / `webNavigation`: keep the content script working on dynamic video pages and frames
+- `activeTab`: grant temporary access to the current site when you click the extension icon or use a shortcut. This is a secure way to enable the subtitle mask on any site without granting permanent access.
+- `scripting`: inject the mask UI and playback enhancement code into video pages.
+- `host_permissions` for `bilibili.com`: allow playback enhancements to load automatically on Bilibili.
 
-## Why broad site access is needed
+## Why `activeTab` is used instead of broad site access
 
-Subtitle Masker needs to run directly on video pages in order to place the mask over the visible subtitle area.
+To respect user privacy and security, BiliTube uses the `activeTab` permission. This means the extension has no access to any website until you explicitly activate it by clicking its icon or using a keyboard shortcut.
 
-Different sites use very different player structures:
-- some use normal inline video elements
-- some use custom fullscreen containers
-- some render video inside frames or dynamic page transitions
+When activated, it gains temporary permission to inject the subtitle mask into the current page. This model provides the flexibility to work on any video site while being much more secure than requesting permanent access to all websites.
 
-Because of that, the extension requests broad site access so it can inject the local mask UI where needed.
+For Bilibili, a specific host permission is requested to allow the playback enhancement features to load automatically for the best user experience.
 
 It does **not** upload browsing history, video data, subtitle data, or page content to any remote server.
 
 ## Security philosophy
 
-Subtitle Masker is intended to stay a local, single-purpose tool.
+BiliTube is intended to stay a local, single-purpose tool.
 
 Its goal is simple: place a mask over visible subtitle areas on video pages.
 
