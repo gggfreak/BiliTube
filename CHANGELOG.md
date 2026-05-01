@@ -6,7 +6,11 @@
 -->
 # Changelog
 
-## 1.0.14 (Current)
+## 1.0.15 (Current)
+
+- **Compliance**: Removed unused `webNavigation` permission to comply with Chrome Web Store policies. This does not affect any existing functionality.
+
+## 1.0.14
 
 - **Security**: Improved extension security and privacy by replacing the broad `<all_urls>` host permission with the `activeTab` permission. The extension now only gains access to a site when the user explicitly clicks the extension icon or uses a shortcut. A specific host permission for `bilibili.com` is retained for automatic feature loading.
 

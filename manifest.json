@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BiliTube",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "A browser extension that enhances Bilibili playback (e.g., long-press 2x speed) and hides hardcoded subtitles with a draggable mask.",
   "icons": {
     "16": "icons/icon16.png",
@@ -15,8 +15,7 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting",
-    "webNavigation"
+    "scripting"
   ],
   "host_permissions": [
     "*://*.bilibili.com/*"
