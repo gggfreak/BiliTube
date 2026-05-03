@@ -1,14 +1,15 @@
 <!--
  * @Date: 2026-04-16 11:10:51
  * @LastEditors: gggfrank
- * @LastEditTime: 2026-04-30 14:11:55
- * @FilePath: /subtitle-masker/CHANGELOG.md
+ * @LastEditTime: 2026-05-01 21:50:57
+ * @FilePath: /BiliTube/CHANGELOG.md
 -->
 # Changelog
 
 ## 1.0.15 (Current)
 
 - **Compliance**: Removed unused `webNavigation` permission to comply with Chrome Web Store policies. This does not affect any existing functionality.
+- **Docs**: Added official Chrome Web Store download links to the documentation.
 
 ## 1.0.14
 

@@ -11,7 +11,7 @@ BiliTube offers two main core features:
 
 ## Quick start
 
-1. Install BiliTube from the Chrome Web Store (link coming soon).
+1. Install BiliTube from the [Chrome Web Store](https://chromewebstore.google.com/detail/bilitube/pmgdfclndepngncnacmegcfplgdecmgh).
 2. Open a video page, click the extension icon, and enable the features.
 
 Normal limitations:
@@ -24,9 +24,9 @@ Normal limitations:
 - Resizable from the corners
 - Adjustable opacity
 - Per-site saved position and size
-- **Bilibili Exclusive Enhancements**:
-  - **Long-press speedup**: Hold left mouse button or Spacebar for 2x speed playback.
-  - **Smart distinction**: Short clicks still trigger Bilibili's native play/pause.
+- **Bilibili & Douyin Enhancements**:
+  - **Long-press speedup**: Hold left mouse button or Spacebar for 2x speed playback on Bilibili and Douyin.
+  - **Smart distinction**: Short clicks still trigger the native play/pause.
   - **Visual indicator**: Displays a sleek "2x ⏩" pill-shaped indicator while speeding up.
   - **YouTube-style shortcuts**:
     - `k`: Play/pause
@@ -82,7 +82,7 @@ The extension only stores local settings such as mask position, size, and opacit
 
 ## Installation
 
-**Recommended**: Install directly from the Chrome Web Store.
+**Recommended**: Install directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/bilitube/pmgdfclndepngncnacmegcfplgdecmgh).
 
 *(For developers: You can also clone this repository, turn on **Developer mode** in your browser's extensions page, and choose **Load unpacked** to load this folder.)*
 
@@ -91,7 +91,7 @@ The extension only stores local settings such as mask position, size, and opacit
 - `storage`: save opacity and mask position
 - `activeTab`: grant temporary access to the current site when you click the extension icon or use a shortcut. This is a secure way to enable the subtitle mask on any site without granting permanent access.
 - `scripting`: inject the mask UI and playback enhancement code into video pages.
-- `host_permissions` for `bilibili.com`: allow playback enhancements to load automatically on Bilibili.
+- `host_permissions` for `bilibili.com` and `douyin.com`: allow playback enhancements to load automatically on specific sites.
 
 ## Why `activeTab` is used instead of broad site access
 
@@ -99,7 +99,7 @@ To respect user privacy and security, BiliTube uses the `activeTab` permission. 
 
 When activated, it gains temporary permission to inject the subtitle mask into the current page. This model provides the flexibility to work on any video site while being much more secure than requesting permanent access to all websites.
 
-For Bilibili, a specific host permission is requested to allow the playback enhancement features to load automatically for the best user experience.
+For Bilibili and Douyin, specific host permissions are requested to allow the playback enhancement features to load automatically for the best user experience.
 
 It does **not** upload browsing history, video data, subtitle data, or page content to any remote server.
 

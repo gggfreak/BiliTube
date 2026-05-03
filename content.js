@@ -28,17 +28,26 @@
   }
 
   function getVideoEl() {
-    const candidates = [
+    const specific = [
       document.querySelector('video#video'),
       document.querySelector('.video-content video'),
-      document.querySelector('bwp-video'),
-      document.querySelector('video'),
-    ];
-    return candidates.find(el => {
-      if (!el) return false;
+      document.querySelector('bwp-video')
+    ].filter(Boolean);
+
+    const allVideos = Array.from(document.querySelectorAll('video'));
+    const candidates = [...specific, ...allVideos];
+
+    let bestFallback = null;
+
+    for (const el of candidates) {
       const r = el.getBoundingClientRect();
-      return r.width > 200 && r.height > 100;
-    });
+      if (r.width > 200 && r.height > 100 && r.bottom > 0 && r.top < window.innerHeight) {
+        if (!el.paused) return el; // Active playing video is the best match
+        if (!bestFallback) bestFallback = el;
+      }
+    }
+
+    return bestFallback || candidates[0] || null;
   }
 
   function isNnyyHost() {
@@ -47,6 +56,10 @@
 
   function isBilibiliHost() {
     return /(^|\.)bilibili\.com$/i.test(location.hostname);
+  }
+
+  function isDouyinHost() {
+    return /(^|\.)douyin\.com$/i.test(location.hostname);
   }
 
   function getFullscreenContainer() {
@@ -427,9 +440,9 @@
     }, 150);
   }
 
-  function setupBilibiliSpeedup() {
-    if (!isBilibiliHost() || window.__bilibiliSpeedupInitialized) return;
-    window.__bilibiliSpeedupInitialized = true;
+  function setupEnhancements() {
+    if ((!isBilibiliHost() && !isDouyinHost()) || window.__enhancementsInitialized) return;
+    window.__enhancementsInitialized = true;
 
     let ytShortcutsEnabled = true;
     chrome.storage.local.get('ytShortcuts', d => {
@@ -473,8 +486,8 @@
       if (fsElement) {
           mount = fsElement;
       } else if (video) {
-          // 尝试找到最近的 Bilibili 播放器容器（通常是已定位的）
-          let currentElement = video.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap');
+              // 尝试找到最近的播放器容器（通常是已定位的）
+              let currentElement = video.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"]');
           if (!currentElement) { // 如果没有找到特定播放器容器，从视频父元素开始查找
               currentElement = video.parentElement;
           }
@@ -536,10 +549,10 @@
     window.addEventListener('pointerdown', (e) => {
       // 只响应鼠标左键
       if (e.button !== 0) return;
-      const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap');
+      const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"]');
       if (!container) return;
       // 忽略对底部控制条等区域的点击
-      if (e.target.closest('.bpx-player-control-wrap, .bilibili-player-video-control, .bpx-player-sending-area')) return;
+      if (e.target.closest('.bpx-player-control-wrap, .bilibili-player-video-control, .bpx-player-sending-area, .xgplayer-controls, xg-controls')) return;
 
       const video = getVideoEl();
       if (!video) return;
@@ -577,7 +590,7 @@
         }
 
         // 保留旧的 click 拦截作为后备，以应对不同的播放器行为。
-        const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap') || document.body;
+        const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"]') || document.body;
         const preventClick = (ev) => {
           ev.stopPropagation();
           ev.preventDefault();
@@ -640,27 +653,27 @@
             break;
           case 'P': // Shift + p
             handled = true;
-            document.querySelector('.bpx-player-ctrl-prev')?.click();
+            document.querySelector('.bpx-player-ctrl-prev, .xgplayer-play-prev')?.click();
             break;
           case 'N': // Shift + n
             handled = true;
-            document.querySelector('.bpx-player-ctrl-next, .bilibili-player-video-btn-next')?.click();
+            document.querySelector('.bpx-player-ctrl-next, .bilibili-player-video-btn-next, .xgplayer-play-next')?.click();
             break;
           case 'f': case 'F':
             handled = true;
-            document.querySelector('.bpx-player-ctrl-full')?.click() || document.querySelector('.bilibili-player-video-btn-fullscreen')?.click();
+            document.querySelector('.bpx-player-ctrl-full, .xgplayer-fullscreen, xg-icon[data-state="full-screen"]')?.click() || document.querySelector('.bilibili-player-video-btn-fullscreen')?.click();
             break;
           case 't': case 'T':
             handled = true;
-            document.querySelector('.bpx-player-ctrl-web')?.click() || document.querySelector('.bilibili-player-video-web-fullscreen')?.click();
+            document.querySelector('.bpx-player-ctrl-web, .xgplayer-cssfullscreen')?.click() || document.querySelector('.bilibili-player-video-web-fullscreen')?.click();
             break;
           case 'i': case 'I':
             handled = true;
-            document.querySelector('.bpx-player-ctrl-pip')?.click();
+            document.querySelector('.bpx-player-ctrl-pip, .xgplayer-pip')?.click();
             break;
           case 'm': case 'M':
             handled = true;
-            document.querySelector('.bpx-player-ctrl-volume')?.click() || (video.muted = !video.muted);
+            document.querySelector('.bpx-player-ctrl-volume, .xgplayer-volume, xg-icon[data-state="normal-volume"]')?.click() || (video.muted = !video.muted);
             break;
         }
 
@@ -868,7 +881,7 @@
     const existing = getVideoEl();
     if (existing) {
       hijackNnyyFullscreen();
-      setupBilibiliSpeedup();
+      setupEnhancements();
     }
     
     let timeout;
@@ -878,7 +891,7 @@
         const el = getVideoEl();
         if (!el) return;
         hijackNnyyFullscreen();
-        setupBilibiliSpeedup();
+        setupEnhancements();
         if (overlay && visible && !el.__subtitleMaskerPositioned) {
           el.__subtitleMaskerPositioned = true;
           // Video just became available — recalculate position
@@ -894,6 +907,6 @@
   if (!isIframe) {
     watchForVideo();
     hijackNnyyFullscreen();
-    setupBilibiliSpeedup();
+    setupEnhancements();
   }
 })();
