@@ -1,12 +1,11 @@
 <!--
  * @Date: 2026-04-16 11:10:51
  * @LastEditors: gggfrank
- * @LastEditTime: 2026-04-30 13:26:08
- * @FilePath: /subtitle-masker/PRIVACY.md
+ * @LastEditTime: 2026-04-33 13:16:08
+ * @FilePath: /subtutbe-masker-masker/PRIVACY.md
 -->
 # Privacy Policy
 
-Subtitle Masker does not collect, transmit, or sell personal data.
 
 ## What the extension does
 
@@ -33,4 +32,3 @@ This data stays in your browser's extension storage.
 - No subtitle content upload
 - No analytics
 - No remote server communication
-

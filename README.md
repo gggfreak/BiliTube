@@ -1,17 +1,18 @@
-# BiliTube
+# UniTube
 
 简体中文说明: [README.zh-CN.md](./README.zh-CN.md)
 
-A lightweight browser extension that enhances your Bilibili playback experience and hides hardcoded subtitles with a draggable mask.
+A lightweight browser extension that enhances your web video playback experience across multiple platforms (Bilibili, Douyin, iQIYI, etc.) and hides hardcoded subtitles with a draggable mask.
 
-BiliTube offers two main core features:
+UniTube offers two main core features:
 
-1. **Bilibili Playback Enhancements**: Brings YouTube-like smooth controls to Bilibili (e.g., long-press mouse or Spacebar for 2x speed).
+1. **Multi-platform Playback Enhancements**: Brings YouTube-like smooth controls to supported sites like Bilibili, Douyin, and iQIYI (e.g., long-press mouse or Spacebar for 2x speed).
 2. **Subtitle Masking**: Built for listening-focused video watching. When subtitles are always on screen, it is too easy to read instead of actually listening. BiliTube places a resizable mask over them so you rely more on audio and context.
+2. **Subtitle Masking**: Built for listening-focused video watching. When subtitles are always on screen, it is too easy to read instead of actually listening. UniTube places a resizable mask over them so you rely more on audio and context.
 
 ## Quick start
 
-1. Install BiliTube from the [Chrome Web Store](https://chromewebstore.google.com/detail/bilitube/pmgdfclndepngncnacmegcfplgdecmgh).
+1. Install UniTube from the Chrome Web Store.
 2. Open a video page, click the extension icon, and enable the features.
 
 Normal limitations:
@@ -24,8 +25,8 @@ Normal limitations:
 - Resizable from the corners
 - Adjustable opacity
 - Per-site saved position and size
-- **Bilibili & Douyin Enhancements**:
-  - **Long-press speedup**: Hold left mouse button or Spacebar for 2x speed playback on Bilibili and Douyin.
+- **Multi-platform Enhancements**:
+  - **Long-press speedup**: Hold left mouse button or Spacebar for 2x speed playback on supported sites (Bilibili, Douyin, iQIYI, etc.).
   - **Smart distinction**: Short clicks still trigger the native play/pause.
   - **Visual indicator**: Displays a sleek "2x ⏩" pill-shaped indicator while speeding up.
   - **YouTube-style shortcuts**:
@@ -33,8 +34,8 @@ Normal limitations:
     - `j` / `l`: Rewind / Fast-forward 10 seconds
     - `0`..`9`: Jump to 0%..90% of the video length
     - `Shift` + `p` / `n`: Previous / Next video
-    - `f` / `t` / `i`: Toggle Fullscreen / Web Fullscreen / Picture-in-Picture
-    - `m`: Toggle Mute
+    - `f` / `ggle Mute
+    - `d`: Toggle Danmaku (on supported sites)
 - Works on many video sites without site-specific setup
 - Site-specific fullscreen handling when needed
 
@@ -71,7 +72,7 @@ Because of browser limitations, some sites may need the extension's custom fulls
 
 ## Privacy
 
-BiliTube runs locally in your browser.
+UniTube runs locally in your browser.
 
 - No account
 - No analytics
@@ -95,7 +96,7 @@ The extension only stores local settings such as mask position, size, and opacit
 
 ## Why `activeTab` is used instead of broad site access
 
-To respect user privacy and security, BiliTube uses the `activeTab` permission. This means the extension has no access to any website until you explicitly activate it by clicking its icon or using a keyboard shortcut.
+To respect user privacy and security, UniTube uses the `activeTab` permission. This means the extension has no access to any website until you explicitly activate it by clicking its icon or using a keyboard shortcut.
 
 When activated, it gains temporary permission to inject the subtitle mask into the current page. This model provides the flexibility to work on any video site while being much more secure than requesting permanent access to all websites.
 
@@ -105,7 +106,7 @@ It does **not** upload browsing history, video data, subtitle data, or page cont
 
 ## Security philosophy
 
-BiliTube is intended to stay a local, single-purpose tool.
+UniTube is intended to stay a local, single-purpose tool.
 
 Its goal is simple: place a mask over visible subtitle areas on video pages.
 

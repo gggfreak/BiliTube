@@ -25,7 +25,7 @@ async function injectAndToggle(tabId) {
 
 // Keyboard shortcut: Alt+S
 chrome.commands.onCommand.addListener(async (command, tab) => {
-  console.log(`[BiliTube] Command received: '${command}' on tab ${tab.id}`);
+  console.log(`[UniTube] Command received: '${command}' on tab ${tab.id}`);
   if (command === 'toggle-mask') {
     await injectAndToggle(tab.id);
   }

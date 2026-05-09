@@ -6,7 +6,43 @@
 -->
 # Changelog
 
-## 1.0.15 (Current)
+## 1.0.27 (Current)
+
+- **Fix**: Fixed the play/pause synchronization issue on Bilibili and other sites. The extension now perfectly simulates a click on the native UI play button instead of poking the raw HTML5 video API, solving the "cannot pause" and "double toggle" state mismatch bugs during short spacebar presses.
+
+## 1.0.26 (Current)
+
+- **Enhancement**: Refined "YouTube-style" keyboard shortcuts to better align with Bilibili's native shortcuts. Re-mapped `T` to Theater mode (Wide screen), added `W` for Web Fullscreen, and added `D` for toggling Danmaku.
+
+## 1.0.28 (Current)
+
+- **Fix**: Upgraded event interception strategy to guarantee the extension handles spacebar events before Bilibili's native player. Switched injection time to `document_start` and added `stopImmediatePropagation()` to completely eliminate the "double toggle" play/pause collision.
+
+## 1.0.25
+
+- **Fix**: Fixed a "double toggle" play/pause bug on Bilibili when pressing the spacebar. Reverted the simulated click approach and restored direct HTML5 video API calls, paired with stronger native event blocking (keydown/keypress) for a flawless short-press experience.
+
+## 1.0.24 (Current)
+
+- **Fix**: Resolved an issue where pressing the spacebar wouldn't toggle play/pause on Bilibili due to virtual DOM event delegation. Now it flawlessly simulates a native mouse click on the video area.
+
+## 1.0.23
+
+- **Branding**: Renamed the extension to UniTube to better reflect its multi-platform support (Bilibili, Douyin, iQIYI, Tencent, Baidu, etc.).
+
+## 1.0.22
+
+- **UI**: Added a supported websites list with an expandable/collapsible toggle to the popup panel.
+
+## 1.0.21
+
+- **Feature**: Added playback enhancement support (like long-press 2x speed) for iQIYI (`iqiyi.com`).
+
+## 1.0.20
+
+- **Feature**: Added playback enhancement support (like long-press 2x speed) for Tencent Video (`v.qq.com`) and Baidu Video (`mbd.baidu.com`).
+
+## 1.0.15
 
 - **Compliance**: Removed unused `webNavigation` permission to comply with Chrome Web Store policies. This does not affect any existing functionality.
 - **Docs**: Added official Chrome Web Store download links to the documentation.

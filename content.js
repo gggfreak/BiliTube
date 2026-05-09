@@ -62,6 +62,18 @@
     return /(^|\.)douyin\.com$/i.test(location.hostname);
   }
 
+  function isMbdBaiduHost() {
+    return /(^|\.)mbd\.baidu\.com$/i.test(location.hostname);
+  }
+
+  function isTencentVideoHost() {
+    return /(^|\.)v\.qq\.com$/i.test(location.hostname);
+  }
+
+  function isIqiyiHost() {
+    return /(^|\.)iqiyi\.com$/i.test(location.hostname);
+  }
+
   function getFullscreenContainer() {
     if (isNnyyHost()) {
       return document.querySelector('.video-content') || document.querySelector('.video-content-w') || null;
@@ -441,7 +453,7 @@
   }
 
   function setupEnhancements() {
-    if ((!isBilibiliHost() && !isDouyinHost()) || window.__enhancementsInitialized) return;
+    if ((!isBilibiliHost() && !isDouyinHost() && !isMbdBaiduHost() && !isTencentVideoHost() && !isIqiyiHost()) || window.__enhancementsInitialized) return;
     window.__enhancementsInitialized = true;
 
     let ytShortcutsEnabled = true;
@@ -478,7 +490,7 @@
       indicator.textContent = text;
       indicator.style.opacity = '1';
       
-      let mount = document.body; // 默认挂载到 body
+      let mount = document.body || document.documentElement;
       const video = getVideoEl();
 
       // 优先挂载到全屏元素
@@ -487,7 +499,7 @@
           mount = fsElement;
       } else if (video) {
               // 尝试找到最近的播放器容器（通常是已定位的）
-              let currentElement = video.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"]');
+          let currentElement = video.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"], .art-video-player, #GameDiv, .txp_player, .iqp-player-videolayer, .iqp-player');
           if (!currentElement) { // 如果没有找到特定播放器容器，从视频父元素开始查找
               currentElement = video.parentElement;
           }
@@ -524,12 +536,19 @@
     let isMouseSpeedingUp = false;
     let isSpaceSpeedingUp = false;
 
+    function togglePlayPause(video) {
+      if (!video) return;
+      // 优先模拟点击网页底部的原生“播放/暂停”按钮，确保播放器内部 UI 状态完美同步
+      const playBtn = document.querySelector('.bpx-player-ctrl-play, .bilibili-player-video-btn-start, .xgplayer-play, .art-control-playAndPause, .txp_btn_play, .iqp-btn-play, .iqp-player-play');
+      if (playBtn) {
+        playBtn.click();
+      } else {
+        video.paused ? video.play().catch(() => {}) : video.pause();
+      }
+    }
+
     function applySpeedup(video) {
       if (!video) return;
-      // 如果当前没有正在加速的来源，则保存原始倍速
-      if (!isMouseSpeedingUp && !isSpaceSpeedingUp) {
-        originalRate = video.playbackRate;
-      }
       video.playbackRate = 2.0;
       showIndicator('2x ⏩', true);
       if (video.paused) {
@@ -543,25 +562,42 @@
       if (!isMouseSpeedingUp && !isSpaceSpeedingUp) {
         video.playbackRate = originalRate;
         hideIndicator();
+        
+        // 防御性恢复：防止 B站 自带的长按松开事件在冒泡阶段或稍后覆盖倍速
+        setTimeout(() => {
+          if (video && !isMouseSpeedingUp && !isSpaceSpeedingUp && video.playbackRate !== originalRate) {
+            video.playbackRate = originalRate;
+          }
+        }, 50);
+        setTimeout(() => {
+          if (video && !isMouseSpeedingUp && !isSpaceSpeedingUp && video.playbackRate !== originalRate) {
+            video.playbackRate = originalRate;
+          }
+        }, 200);
       }
     }
 
     window.addEventListener('pointerdown', (e) => {
       // 只响应鼠标左键
       if (e.button !== 0) return;
-      const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"]');
+      const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"], .art-video-player, #GameDiv, .txp_player, .iqp-player-videolayer, .iqp-player');
       if (!container) return;
       // 忽略对底部控制条等区域的点击
-      if (e.target.closest('.bpx-player-control-wrap, .bilibili-player-video-control, .bpx-player-sending-area, .xgplayer-controls, xg-controls')) return;
+      if (e.target.closest('.bpx-player-control-wrap, .bilibili-player-video-control, .bpx-player-sending-area, .xgplayer-controls, xg-controls, .art-bottom, .art-controls, .txp_controls, .txp_bottom, .iqp-player-bottom, .iqp-player-control')) return;
 
       const video = getVideoEl();
       if (!video) return;
 
+      // 立即保存原始倍速（在任何 timer 触发或 B站 修改之前），避免竞态导致错存 2.0
+      if (!isMouseSpeedingUp && !isSpaceSpeedingUp && !mouseTimer && !spaceTimer) {
+        originalRate = video.playbackRate;
+      }
+
       // 设定 250ms 延迟，区分普通单击(暂停/播放)与长按
       mouseTimer = setTimeout(() => {
         mouseTimer = null;
-        applySpeedup(video);
         isMouseSpeedingUp = true;
+        applySpeedup(video);
       }, 250);
     }, true);
 
@@ -590,7 +626,7 @@
         }
 
         // 保留旧的 click 拦截作为后备，以应对不同的播放器行为。
-        const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"]') || document.body;
+        const container = e.target.closest('.bpx-player-video-wrap, .bpx-player-video-area, .bilibili-player-video-wrap, .xgplayer, [data-e2e="video-player"], .art-video-player, #GameDiv, .txp_player, .iqp-player-videolayer, .iqp-player') || document.body || document.documentElement;
         const preventClick = (ev) => {
           ev.stopPropagation();
           ev.preventDefault();
@@ -606,6 +642,16 @@
     window.addEventListener('pointerup', stopMouseSpeedup, true);
     window.addEventListener('pointercancel', stopMouseSpeedup, true);
 
+    // --- 彻底阻止原生 Space 键触发默认的播放行为 ---
+    window.addEventListener('keypress', (e) => {
+      if (isInput(e.target)) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        e.stopPropagation();
+      }
+    }, true);
+
     // --- 键盘长按空格加速 ---
     // 如果焦点在输入框（如搜索框、评论区），不拦截空格
     const isInput = (el) => el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
@@ -618,12 +664,17 @@
       // 1. 处理长按空格加速 (需要 repeat 判断)
       if (e.code === 'Space') {
         e.preventDefault();
+        e.stopImmediatePropagation();
         e.stopPropagation();
         if (!e.repeat) {
+          // 立即保存原始倍速
+          if (!isMouseSpeedingUp && !isSpaceSpeedingUp && !mouseTimer && !spaceTimer) {
+            originalRate = video.playbackRate;
+          }
           spaceTimer = setTimeout(() => {
             spaceTimer = null;
-            applySpeedup(video);
             isSpaceSpeedingUp = true;
+            applySpeedup(video);
           }, 250);
         }
         return;
@@ -639,7 +690,7 @@
         switch (e.key) {
           case 'k': case 'K':
             handled = true;
-            video.paused ? video.play().catch(()=>{}) : video.pause();
+              togglePlayPause(video);
             break;
           case 'j': case 'J':
             handled = true;
@@ -665,7 +716,16 @@
             break;
           case 't': case 'T':
             handled = true;
-            document.querySelector('.bpx-player-ctrl-web, .xgplayer-cssfullscreen')?.click() || document.querySelector('.bilibili-player-video-web-fullscreen')?.click();
+            // T 优先对应 YouTube 的 Theater Mode (宽屏) 以及 B站原生宽屏
+            document.querySelector('.bpx-player-ctrl-wide, .bilibili-player-video-btn-widescreen')?.click() || document.querySelector('.bpx-player-ctrl-web, .xgplayer-cssfullscreen')?.click();
+            break;
+          case 'w': case 'W':
+            handled = true;
+            document.querySelector('.bpx-player-ctrl-web, .xgplayer-cssfullscreen, .bilibili-player-video-web-fullscreen')?.click();
+            break;
+          case 'd': case 'D':
+            handled = true;
+            document.querySelector('.bpx-player-ctrl-danmaku, .bilibili-player-video-danmaku-switch, .xgplayer-danmu')?.click();
             break;
           case 'i': case 'I':
             handled = true;
@@ -689,6 +749,7 @@
 
       if (handled) {
         e.preventDefault();
+        e.stopImmediatePropagation();
         e.stopPropagation();
       }
     }, true);
@@ -699,6 +760,7 @@
 
       if (e.code === 'Space') {
         e.preventDefault();
+        e.stopImmediatePropagation();
         e.stopPropagation();
 
         if (spaceTimer) {
@@ -706,7 +768,7 @@
           clearTimeout(spaceTimer);
           spaceTimer = null;
           if (video) {
-            video.paused ? video.play().catch(() => {}) : video.pause();
+              togglePlayPause(video);
           }
         }
 
@@ -900,7 +962,7 @@
         }
       }, 500);
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
   }
 
   // Initialize on first injection (top frame only)

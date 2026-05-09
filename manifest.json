@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "BiliTube",
-  "version": "1.0.16",
-  "description": "A browser extension that enhances Bilibili playback (e.g., long-press 2x speed) and hides hardcoded subtitles with a draggable mask.",
+  "name": "UniTube",
+  "version": "1.0.28",
+  "description": "A browser extension that enhances web video playback (e.g., long-press 2x speed) across multiple platforms and hides hardcoded subtitles with a draggable mask.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -19,17 +19,23 @@
   ],
   "host_permissions": [
     "*://*.bilibili.com/*",
-    "*://*.douyin.com/*"
+    "*://*.douyin.com/*",
+    "*://mbd.baidu.com/*",
+    "*://v.qq.com/*",
+    "*://*.iqiyi.com/*"
   ],
   "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
       "matches": [
         "*://*.bilibili.com/*",
-        "*://*.douyin.com/*"
+        "*://*.douyin.com/*",
+        "*://mbd.baidu.com/*",
+        "*://v.qq.com/*",
+        "*://*.iqiyi.com/*"
       ],
       "js": ["content.js"],
-      "run_at": "document_idle",
+      "run_at": "document_start",
       "all_frames": true
     }
   ],
